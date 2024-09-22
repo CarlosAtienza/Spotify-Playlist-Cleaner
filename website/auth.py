@@ -14,8 +14,8 @@ auth = Blueprint('auth', __name__)
 
 load_dotenv()
 
-client_id = os.environ.get('CLIENT_ID')
-client_secret = os.environ.get('CLIENT_SECRET')
+client_id = os.getenv('CLIENT_ID')
+client_secret = os.getenv('CLIENT_SECRET')
 
 redirect_uri = "http://localhost:5000/callback"
 scope = 'playlist-modify-public, user-library-read' ##separate with comma to add more scope
