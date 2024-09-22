@@ -17,7 +17,7 @@ load_dotenv()
 client_id = os.getenv('CLIENT_ID')
 client_secret = os.getenv('CLIENT_SECRET')
 
-redirect_uri = "http://localhost:5000/callback"
+redirect_uri = "https://spotify-playlist-cleaner.onrender.com"
 scope = 'playlist-modify-public, user-library-read' ##separate with comma to add more scope
 
 cache_handler = FlaskSessionCacheHandler(session)
@@ -47,10 +47,6 @@ def home():
 
     # Query User entry
     user = User.query.filter_by(id=user_id).first()
-
-    if user is None:
-        print("sdfkljdsfkjdsflkskldfjsdlkjljsdkfljkdfsljkdfs")
-
 
     ##Getting user playlists
     playlists = sp.user_playlists(user.spotify_id)
@@ -92,8 +88,6 @@ def home():
         if action == 'add_artist':
             artist_query = request.form.get('artistsToRemove', '').lower()
             
-            
-         
             if artist_query:
                     results = sp.search(q=artist_query, type='artist', limit=1)
                     artists = results['artists']['items']
@@ -113,10 +107,6 @@ def home():
                             flash('Artist added', category='success')
                         else:   
                             flash('Artist not found.', category='error')
-        
-       
-                
-    
     return render_template(
         'index.html', 
         user=user, 
@@ -152,7 +142,6 @@ def callback():
         user.access_token = token_info['access_token']
         user.refresh_token = token_info['refresh_token']
         db.session.commit()
-
   
     session['user_id'] = user.id
     return redirect(url_for('auth.home'))
@@ -175,7 +164,7 @@ def process_playlist():
     artist_list = [artist.name for artist in user.artists]
     if artist_list is None:
         print('Pick playlist')
-        flash('Choose Artists to removefgbdcdfg', category='error')
+        flash('Choose Artists to remove', category='error')
         return redirect(url_for('auth.home'))
     
     
@@ -216,15 +205,10 @@ def process_playlist():
                     ))
                     
         offset += limit
-    
-    ##
+
     session['tracks_to_remove'] = tracks_to_remove
     session['track_names'] = track_names
-    
-
     return redirect(url_for('auth.home'))
-    
-
 
 
 @auth.route('/delete-artist', methods=['POST'])
@@ -254,26 +238,15 @@ def remove_track():
     track_names = session.get('track_names')
     
     session['tracks_to_remove'] = tracks_to_remove
-    
-
     return jsonify({})
-
-
-    
 
 @auth.route('/confirm', methods=['POST'])
 def confirm():
-    
     tracks_to_remove = session.get('tracks_to_remove')
-    
     playlist_id = session.get('playlist_id')
-
     sp.playlist_remove_specific_occurrences_of_items(playlist_id, tracks_to_remove)
-
     return redirect(url_for('auth.home'))
     
-
-
 @auth.route('/login', methods = ['GET'])
 def login():
         auth_url = sp_oauth.get_authorize_url()
